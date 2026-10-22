@@ -26,6 +26,7 @@ namespace CitizenFX.Core
 		/// </summary>
 		private static List<Action> s_nextFrame = new List<Action>();
 		private static List<Action> s_nextFrameProcessing = new List<Action>();
+		private static readonly object s_nextFrameLock = new object();
 
 		internal static void Initialize()
 		{
@@ -40,7 +41,7 @@ namespace CitizenFX.Core
 		{
 			if (coroutine != null)
 			{
-				lock (s_nextFrame)
+				lock (s_nextFrameLock)
 				{
 					s_nextFrame.Add(coroutine);
 					ScriptInterface.RequestTickNextFrame();
@@ -144,7 +145,10 @@ namespace CitizenFX.Core
 
 			// all next frame coroutines
 			{
-				s_nextFrameProcessing = Interlocked.Exchange(ref s_nextFrame, s_nextFrameProcessing);
+				lock (s_nextFrameLock)
+				{
+					s_nextFrameProcessing = Interlocked.Exchange(ref s_nextFrame, s_nextFrameProcessing);
+				}
 
 				for (int i = 0; i < s_nextFrameProcessing.Count; i++)
 				{
