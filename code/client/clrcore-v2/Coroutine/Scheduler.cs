@@ -111,7 +111,6 @@ namespace CitizenFX.Core
 		/// </summary>
 		/// <param name="coroutine">Coroutine to remove</param>
 		/// <param name="time">Max scheduled time we consider searching to</param>
-		/// <exception cref="ArgumentNullException"></exception>
 		internal static void Unschedule(Action coroutine, TimePoint time)
 		{
 			if (time > CurrentTime) // e.g.: Coroutine.Wait(0u) or Coroutine.Delay(0u)
@@ -132,8 +131,6 @@ namespace CitizenFX.Core
 					}
 				}
 			}
-			else
-				throw new ArgumentNullException(nameof(coroutine));
 		}
 
 		/// <summary>
