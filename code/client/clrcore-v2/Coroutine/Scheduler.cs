@@ -201,13 +201,20 @@ namespace CitizenFX.Core
 		/// <returns>Delay in milliseconds or ~0ul (<see cref="ulong.MaxValue"/>) if there's nothing to run</returns>
 		internal static ulong NextTaskTime()
 		{
-			if (s_nextFrame.Count != 0)
+			lock (s_nextFrameLock)
 			{
-				return CurrentTime;
+				if (s_nextFrame.Count != 0)
+				{
+					return CurrentTime;
+				}
 			}
-			else if (s_queue.Count != 0)
+
+			lock (s_queue)
 			{
-				return s_queue.First.Value.Item1;
+				if (s_queue.Count != 0)
+				{
+					return s_queue.First.Value.Item1;
+				}
 			}
 			
 			return ulong.MaxValue;
