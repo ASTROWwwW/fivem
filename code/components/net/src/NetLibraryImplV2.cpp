@@ -359,16 +359,32 @@ void NetLibraryImplV2::ProcessPacket(const uint8_t* data, size_t size, NetPacket
 	if (msgType == 1)
 	{
 		char dataCopy[8192];
-		memcpy(dataCopy, data, std::min(size, sizeof(dataCopy)));
+
+		if (size < 6 || size >= sizeof(dataCopy))
+		{
+			return;
+		}
+
+		memcpy(dataCopy, data, size);
 		dataCopy[size] = '\0';
 
 		char* clientNetIDStr = &dataCopy[5];
 		char* hostIDStr = strchr(clientNetIDStr, ' ');
 
+		if (!hostIDStr)
+		{
+			return;
+		}
+
 		hostIDStr[0] = '\0';
 		hostIDStr++;
 
 		char* hostBaseStr = strchr(hostIDStr, ' ');
+
+		if (!hostBaseStr)
+		{
+			return;
+		}
 
 		hostBaseStr[0] = '\0';
 		hostBaseStr++;

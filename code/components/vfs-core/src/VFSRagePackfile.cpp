@@ -109,6 +109,16 @@ namespace vfs
 			return false;
 		}
 
+		if (m_header.numEntries == 0 || m_header.tocSize > 64 * 1024 * 1024 || uint64_t(m_header.numEntries) * sizeof(Entry) >= m_header.tocSize)
+		{
+			if (errorState)
+			{
+				*errorState = "Invalid TOC size";
+			}
+
+			return false;
+		}
+
 		// read the TOC into a temporary list - we split this into entry/name table later
 		std::vector<char> toc(m_header.tocSize);
 
@@ -124,6 +134,20 @@ namespace vfs
 		m_nameTable.resize(m_header.tocSize - entryTableSize);
 		
 		memcpy(&m_nameTable[0], &toc[entryTableSize], m_nameTable.size());
+		m_nameTable.push_back('\0');
+
+		for (const auto& entry : m_entries)
+		{
+			if (entry.nameOffset >= m_nameTable.size() - 1)
+			{
+				if (errorState)
+				{
+					*errorState = "Invalid name offset";
+				}
+
+				return false;
+			}
+		}
 
 		// return a success value
 		return true;
