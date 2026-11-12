@@ -7952,7 +7952,14 @@ bool fx::ServerGameState::IsClientRelevantEntity(const fx::ClientSharedPtr& clie
 {
 	if (auto val = GetClientDataUnlocked(this, client))
 	{
-		if (fx::sync::SyncEntityPtr syncEntity = val->playerEntity.lock())
+		fx::sync::SyncEntityPtr syncEntity;
+
+		{
+			std::shared_lock _lock(val->playerEntityMutex);
+			syncEntity = val->playerEntity.lock();
+		}
+
+		if (syncEntity)
 		{
 			std::shared_lock lock(syncEntity->guidMutex);
 			return syncEntity->relevantTo.test(objectId);
