@@ -11,6 +11,9 @@ namespace CitizenFX.Core
 
 	internal class MsgPackDeserializer
 	{
+		private const int MaxNestingDepth = 256;
+		private int m_nestingDepth;
+
 		string NetSource { get; set; }
 
 		public static object Deserialize(byte[] data, string netSource = null)
@@ -26,10 +29,23 @@ namespace CitizenFX.Core
 
 		object UnpackAny(BinaryReader reader)
 		{
-			var type = reader.ReadByte();
-			var unpacker = GetUnpacker(type);
+			if (m_nestingDepth >= MaxNestingDepth)
+			{
+				throw new InvalidDataException($"MsgPack nesting exceeds maximum depth of {MaxNestingDepth}.");
+			}
 
-			return unpacker(type, reader);
+			m_nestingDepth++;
+			try
+			{
+				var type = reader.ReadByte();
+				var unpacker = GetUnpacker(type);
+
+				return unpacker(type, reader);
+			}
+			finally
+			{
+				m_nestingDepth--;
+			}
 		}
 
 		object UnpackMap(BinaryReader reader, int length)
