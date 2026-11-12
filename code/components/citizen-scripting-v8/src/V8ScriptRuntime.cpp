@@ -1129,7 +1129,7 @@ void V8ScriptNativeContext::PushArgument(v8::Local<v8::Value> arg)
 		Local<ArrayBuffer> buffer = abv->Buffer();
 
 		auto abs = buffer->GetBackingStore();
-		return Push((uint8_t*)abs->Data() + abv->ByteOffset(), abs->ByteLength());
+		return Push((uint8_t*)abs->Data() + abv->ByteOffset(), abv->ByteLength());
 	}
 	// this should be the last entry, I'd guess
 	else if (arg->IsObject())

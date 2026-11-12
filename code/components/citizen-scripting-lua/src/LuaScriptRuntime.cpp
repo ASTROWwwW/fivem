@@ -1523,7 +1523,11 @@ result_t LuaScriptRuntime::LoadFileInternal(OMPtr<fxIStream> stream, char* scrip
 	fwString chunkName("@");
 	chunkName.append(scriptFile);
 
+#ifdef IS_FXSERVER
 	if (luaL_loadbuffer(m_state, &fileData[0], length, chunkName.c_str()) != 0)
+#else
+	if (luaL_loadbufferx(m_state, &fileData[0], length, chunkName.c_str(), "t") != 0)
+#endif
 	{
 		LUA_SCRIPT_TRACE(m_state, "Error parsing script %s in resource %s", scriptFile, GetResourceName());
 
