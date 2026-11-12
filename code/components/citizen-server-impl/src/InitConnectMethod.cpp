@@ -1046,9 +1046,9 @@ static InitFunction initFunction([]()
 
 					json dataNew = data;
 
-					if (deferrals && *deferrals)
+					if (auto deferralsRef = *deferrals)
 					{
-						addData(dataNew, *deferrals);
+						addData(dataNew, deferralsRef);
 					}
 
 					auto ref1 = *cbRef;
@@ -1219,7 +1219,7 @@ static InitFunction initFunction([]()
 						allowClient();
 
 						json dataNew = data;
-						addData(dataNew, *deferrals);
+						addData(dataNew, deferralsRef);
 
 						*cbRef = nullptr;
 						*deferrals = nullptr;
