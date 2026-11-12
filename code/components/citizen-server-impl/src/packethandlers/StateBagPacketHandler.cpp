@@ -161,7 +161,7 @@ void StateBagPacketHandler::HandleStateBagMessage(fx::ServerInstanceBase* instan
 				auto result = std::from_chars(bagNameOnFailure.data() + 7,
 				                              bagNameOnFailure.data() + bagNameOnFailure.size(), entityID);
 
-				if (result.ec == std::errc()) // success
+				if (result.ec == std::errc() && entityID >= 0 && entityID <= 0xFFFF && bagNameOnFailure == "entity:" + std::to_string(entityID))
 				{
 					auto gameState = instance->GetComponent<fx::ServerGameStatePublic>();
 					if (gameState->SetEntityStateBag(0, entityID, [stateBagComponent, bagNameOnFailure]
@@ -328,7 +328,7 @@ void StateBagPacketHandlerV2::HandleStateBagMessage(fx::ServerInstanceBase* inst
 				auto result = std::from_chars(bagNameOnFailure.data() + 7,
 				                              bagNameOnFailure.data() + bagNameOnFailure.size(), entityID);
 
-				if (result.ec == std::errc()) // success
+				if (result.ec == std::errc() && entityID >= 0 && entityID <= 0xFFFF && bagNameOnFailure == "entity:" + std::to_string(entityID))
 				{
 					auto gameState = instance->GetComponent<fx::ServerGameStatePublic>();
 					if (gameState->SetEntityStateBag(0, entityID, [stateBagComponent, bagNameOnFailure]

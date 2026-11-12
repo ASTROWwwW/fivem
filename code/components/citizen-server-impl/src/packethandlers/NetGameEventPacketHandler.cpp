@@ -105,7 +105,7 @@ bool NetGameEventPacketHandlerV2::ProcessNetEvent(fx::ServerInstanceBase* instan
 		std::vector<uint16_t> targetPlayers;
 		targetPlayers.reserve(targetPlayersSpan.size());
 
-		thread_local eastl::bitset<net::roundToType<size_t>(MAX_CLIENTS)> processed;
+		thread_local eastl::bitset<net::roundToType<size_t>(0x10000)> processed;
 		processed.reset();
 
 		for (const uint16_t player : targetPlayersSpan)

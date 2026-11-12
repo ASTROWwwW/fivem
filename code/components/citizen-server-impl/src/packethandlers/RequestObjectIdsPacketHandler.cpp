@@ -14,7 +14,7 @@ template<bool BigMode>
 void SendObjectIdsToClient(const fx::ClientSharedPtr& client, const std::vector<uint16_t>& freeIds)
 {
 	static size_t kMaxResponseSize = net::SerializableComponent::GetMaxSize<net::packet::ServerObjectIdsPacket<BigMode>>();
-	static std::vector<typename net::packet::ServerObjectIds<BigMode>::IdEntry> idContainer;
+	thread_local std::vector<typename net::packet::ServerObjectIds<BigMode>::IdEntry> idContainer;
 
 	idContainer.clear();
 	net::Buffer responseBuffer(kMaxResponseSize);
