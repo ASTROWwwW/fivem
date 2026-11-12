@@ -910,6 +910,7 @@ concurrency::task<void> NetLibrary::ConnectToServer(const std::string& rootUrl)
 	} es(this);
 
 	m_connectionState = CS_INITING;
+	m_targetContext.clear();
 	m_currentServerUrl = url;
 
 	AddCrashometry("last_server_url", "%s", url);
@@ -1444,7 +1445,14 @@ concurrency::task<void> NetLibrary::ConnectToServer(const std::string& rootUrl)
 											try
 											{
 												auto targetContext = val.substr(val.find_first_of('_') + 1);
-												m_targetContext = targetContext.substr(0, targetContext.find_first_of(':'));
+												targetContext = targetContext.substr(0, targetContext.find_first_of(':'));
+
+												if (targetContext.size() > 128 || targetContext.find_first_of("\\/<>|\"*?") != std::string::npos)
+												{
+													targetContext.clear();
+												}
+
+												m_targetContext = targetContext;
 											
 												Instance<ICoreGameInit>::Get()->SetData("serverId", val.substr(0, val.find_first_of('x')));
 											}
