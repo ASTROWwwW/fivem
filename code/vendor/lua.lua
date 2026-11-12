@@ -27,6 +27,10 @@ return {
 			defines { "LUA_USE_POSIX" }
 		end
 
+		if _OPTIONS['game'] ~= 'server' then
+			defines { 'LUA_NO_BYTECODE' }
+		end
+
 		defines {
 			'MAKE_LIB', -- Required specification when building onelua.c
 			'NOMINMAX',
