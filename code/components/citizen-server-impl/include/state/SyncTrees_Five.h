@@ -887,7 +887,7 @@ struct CVehicleAppearanceDataNode : GenericSerializeDataNode<CVehicleAppearanceD
         }
         else
         {
-            for (int i = 0; i < 13; i++)
+            for (int i = 0; i < 4; i++)
             {
                 data.hasBadge[i] = false;
             }
