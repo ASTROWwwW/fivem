@@ -268,8 +268,6 @@ VerifyTicketResult VerifyTicket(const std::string& guid, const std::string& tick
 			g_ticketList.clear();
 			g_nextTicketGc = msec() + std::chrono::minutes(30);
 		}
-
-		g_ticketList.insert({ ticketExpiry, ticketGuid });
 	}
 
 	// check the RSA signature
@@ -294,6 +292,17 @@ VerifyTicketResult VerifyTicket(const std::string& guid, const std::string& tick
 	if (!valid)
 	{
 		return VerifyTicketResult::InvalidSignature;
+	}
+
+	// only remember the ticket once its signature has been verified, so unsigned/forged tickets
+	// cannot poison the replay list (and the retry after a public-key refresh still works)
+	{
+		std::unique_lock<std::mutex> _(g_ticketMapMutex);
+
+		if (!g_ticketList.insert({ ticketExpiry, ticketGuid }).second)
+		{
+			return VerifyTicketResult::Reused;
+		}
 	}
 
 	return VerifyTicketResult::Success;
