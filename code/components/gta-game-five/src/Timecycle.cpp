@@ -98,7 +98,7 @@ rage::tcVarInfo* TimecycleManager::GetConfigVarInfos()
 
 rage::tcModData* TimecycleManager::GetTimecycleModDataByIndex(rage::tcModifier& modifier, int index)
 {
-	if (index < modifier.m_modData.GetCount())
+	if (index >= 0 && index < modifier.m_modData.GetCount())
 	{
 		return &modifier.m_modData[index];
 	}

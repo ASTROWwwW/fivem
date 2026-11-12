@@ -340,7 +340,7 @@ static int UpdateMapdataEntity(int mapDataIdx, int entityIdx, const char* msgDat
 		auto mapDataContents = *(CMapDataContents**)(entry);
 		auto mapData = mapDataContents->mapData;
 
-		if (entityIdx < mapData->entities.GetCount())
+		if (entityIdx >= 0 && entityIdx < mapData->entities.GetCount())
 		{
 			auto entityDef = mapData->entities.Get(entityIdx);
 			MakeStructFromMsgPack("CEntityDef", data, entityDef, true);

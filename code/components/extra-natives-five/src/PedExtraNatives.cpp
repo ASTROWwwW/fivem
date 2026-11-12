@@ -275,7 +275,7 @@ static HookFunction initFunction([]()
 		fwEntity* entity = rage::fwScriptGuid::GetBaseFromGuid(context.GetArgument<int>(0));
 		int index = context.GetArgument<int>(1);
 
-		if (index >= 0 && index <= 13 && entity && entity->IsOfType<CPed>())
+		if (index >= 0 && index < 13 && entity && entity->IsOfType<CPed>())
 		{
 			CPedHeadBlendData* data = GetPedHeadBlendData(entity);
 			if (data != nullptr)

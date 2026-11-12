@@ -202,7 +202,7 @@ void RuntimeTex::SetPixel(int x, int y, int r, int g, int b, int a)
 {
 	auto offset = (y * m_pitch) + (x * 4);
 
-	if (offset < 0 || offset > m_backingPixels.size() - 4)
+	if (offset < 0 || m_backingPixels.size() < 4 || static_cast<size_t>(offset) > m_backingPixels.size() - 4)
 	{
 		return;
 	}
@@ -1302,6 +1302,11 @@ static InitFunction initFunction([]()
 					uint32_t virtPages;
 					uint32_t physPages;
 				} rsc7Header;
+
+				if (size < sizeof(rsc7Header))
+				{
+					return;
+				}
 
 				memcpy(&rsc7Header, data, sizeof(rsc7Header));
 

@@ -25,7 +25,7 @@ public:
 	template<typename T>
 	T* GetAt(int index) const
 	{
-		if (m_flags[index] < 0)
+		if (index < 0 || static_cast<uint32_t>(index) >= m_count || m_flags[index] < 0)
 		{
 			return nullptr;
 		}
@@ -39,7 +39,7 @@ public:
 		int index = handle >> 8;
 		int8_t flag = handle & 0xFF;
 
-		if (m_flags[index] < 0 || m_flags[index] != flag)
+		if (index < 0 || static_cast<uint32_t>(index) >= m_count || m_flags[index] < 0 || m_flags[index] != flag)
 		{
 			return nullptr;
 		}
