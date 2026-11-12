@@ -610,3 +610,16 @@ TEST_CASE("rl::MessageBuffer::Clone allocates ceil(bits/8) bytes and copies the 
 	REQUIRE(clone.GetBuffer().size() == 10);
 	REQUIRE(clone.GetBuffer() == data);
 }
+
+TEST_CASE("rl::MessageBuffer reads full-width floats")
+{
+	// 31-bit unsigned and 32-bit signed floats are used by game events (explosion and projectile positions)
+	rl::MessageBuffer buffer(8);
+	buffer.Write<uint32_t>(31, 0x7FFFFFFF);
+	buffer.Write<uint32_t>(1, 0);
+	buffer.Write<uint32_t>(31, 0x7FFFFFFF);
+	buffer.SetCurrentBit(0);
+
+	REQUIRE(buffer.ReadFloat(31, 4416.0f) == 4416.0f);
+	REQUIRE(buffer.ReadSignedFloat(32, 16000.0f) == 16000.0f);
+}

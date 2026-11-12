@@ -506,7 +506,7 @@ public:
 	{
 		auto integer = Read<int>(length);
 
-		float max = (1 << length) - 1;
+		float max = float((uint64_t(1) << length) - 1);
 		return ((float)integer / max) * divisor;
 	}
 
@@ -522,7 +522,7 @@ public:
 	{
 		auto integer = ReadSigned<int>(length);
 
-		float max = (1 << (length - 1)) - 1;
+		float max = float((uint64_t(1) << (length - 1)) - 1);
 		return ((float)integer / max) * divisor;
 	}
 
