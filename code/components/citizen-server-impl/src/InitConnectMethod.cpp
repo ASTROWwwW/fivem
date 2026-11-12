@@ -262,14 +262,6 @@ VerifyTicketResult VerifyTicket(const std::string& guid, const std::string& tick
 		{
 			return VerifyTicketResult::Reused;
 		}
-
-		if (msec() > g_nextTicketGc)
-		{
-			g_ticketList.clear();
-			g_nextTicketGc = msec() + std::chrono::minutes(30);
-		}
-
-		g_ticketList.insert({ ticketExpiry, ticketGuid });
 	}
 
 	// check the RSA signature
@@ -294,6 +286,25 @@ VerifyTicketResult VerifyTicket(const std::string& guid, const std::string& tick
 	if (!valid)
 	{
 		return VerifyTicketResult::InvalidSignature;
+	}
+
+	{
+		std::unique_lock<std::mutex> _(g_ticketMapMutex);
+
+		if (msec() > g_nextTicketGc)
+		{
+			for (auto it = g_ticketList.begin(); it != g_ticketList.end();)
+			{
+				it = (std::get<0>(*it) < static_cast<uint64_t>(timeVal)) ? g_ticketList.erase(it) : std::next(it);
+			}
+
+			g_nextTicketGc = msec() + std::chrono::minutes(30);
+		}
+
+		if (!g_ticketList.insert({ ticketExpiry, ticketGuid }).second)
+		{
+			return VerifyTicketResult::Reused;
+		}
 	}
 
 	return VerifyTicketResult::Success;
@@ -1044,8 +1055,8 @@ static InitFunction initFunction([]()
 
 					if (ref1)
 					{
-						(**cbRef)(dataNew);
-						(**cbRef)(json(nullptr));
+						(*ref1)(dataNew);
+						(*ref1)(json(nullptr));
 					}
 
 					*cbRef = nullptr;
@@ -1091,8 +1102,8 @@ static InitFunction initFunction([]()
 
 						if (ref1)
 						{
-							(**cbRef)(json::object({ { "error", message } }));
-							(**cbRef)(json(nullptr));
+							(*ref1)(json::object({ { "error", message } }));
+							(*ref1)(json(nullptr));
 						}
 					}
 

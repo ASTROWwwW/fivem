@@ -140,6 +140,11 @@ void Log_info_client(client_t* client, const char* logstring, ...)
 	offset += vsnprintf(&buf[offset], STRSIZE - offset, logstring, argp);
 	va_end(argp);
 
+	if (offset < 0 || offset >= STRSIZE)
+	{
+		offset = STRSIZE - 1;
+	}
+
 	char* clientAddressString = Util_clientAddressToString(client);
 	offset += snprintf(&buf[offset], STRSIZE - offset, " - [%d] %s@%s:%d",
 	client->sessionId,

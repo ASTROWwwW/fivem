@@ -470,6 +470,12 @@ void Mh_handle_message(client_t* client, message_t* msg)
 			msg->payload.userState->set_session(target->sessionId);
 			msg->payload.userState->set_actor(client->sessionId);
 
+			if (!client->isAdmin)
+			{
+				msg->payload.userState->clear_mute();
+				msg->payload.userState->clear_deaf();
+			}
+
 			std::list<channel_t*> listeningChannelsAdd;
 
 			for (int i = 0; i < msg->payload.userState->listening_channel_add_size(); i++)

@@ -581,6 +581,8 @@ void HttpServerImpl::OnConnection(fwRefContainer<TcpServerStream> stream)
 				}
 				else
 				{
+					localConnectionData->lastLength += requestSize;
+
 					// remove the original bytes from the queue
 					readQueue.erase(readQueue.begin(), readQueue.begin() + readQueue.size() - result);
 

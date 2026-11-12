@@ -100,20 +100,12 @@ static InitFunction initFunction([]()
 
 			Instance<HttpClient>::Get()->DoPostRequest("https://cfx.re/api/validateSource/?v=1", { { "ip", clep } }, [this, clep, doAccept, clientPtr, cb](bool success, const char* data, size_t size)
 			{
-				bool allowSourceIP = true;
+				bool allowSourceIP = false;
 
-				if (success)
+				if (success && std::string_view{ data, size } == "yes")
 				{
-					std::string result{ data, size };
-
-					if (result != "yes")
-					{
-						allowSourceIP = false;
-					}
-					else
-					{
-						allowedByPolicyCache.insert({ clep, true });
-					}
+					allowSourceIP = true;
+					allowedByPolicyCache.insert({ clep, true });
 				}
 
 				if (allowSourceIP)

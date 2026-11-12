@@ -678,8 +678,6 @@ namespace fx
 					{
 						SendOutOfBand(peer->GetAddress(), "error Invalid connection token received.");
 
-						m_clientRegistry->RemoveClient(client);
-
 						return;
 					}
 

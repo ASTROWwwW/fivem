@@ -919,6 +919,8 @@ int Client_voiceMsg(client_t* client, uint8_t* data, int len)
 			ch = Chan_fromId(vt->channels[i].channel);
 			if (ch == NULL)
 				continue;
+			if (targeted_channels.find(ch->id) != targeted_channels.end())
+				continue;
 			targeted_channels.emplace(ch->id);
 			list_iterate(itr, &ch->clients)
 			{
