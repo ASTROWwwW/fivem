@@ -4887,7 +4887,7 @@ void CFireEvent::Parse(rl::MessageBufferView& buffer)
 
 	for (int i = 0; i < count; i++)
 	{
-		fire f;
+		fire f{};
 		f.v1 = buffer.Read<int>(4);
 		f.isEntity = buffer.Read<uint8_t>(1);
 		f.v2 = f.isEntity;
