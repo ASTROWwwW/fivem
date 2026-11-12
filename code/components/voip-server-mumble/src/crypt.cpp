@@ -54,7 +54,7 @@ extern havege_state hs;
 #endif
 
 static void CryptState_ocb_encrypt(cryptState_t* cs, const unsigned char* plain, unsigned char* encrypted, unsigned int len, const unsigned char* nonce, unsigned char* tag);
-static void CryptState_ocb_decrypt(cryptState_t* cs, const unsigned char* encrypted, unsigned char* plain, unsigned int len, const unsigned char* nonce, unsigned char* tag);
+static bool CryptState_ocb_decrypt(cryptState_t* cs, const unsigned char* encrypted, unsigned char* plain, unsigned int len, const unsigned char* nonce, unsigned char* tag);
 
 void CryptState_init(cryptState_t* cs)
 {
@@ -215,9 +215,9 @@ bool_t CryptState_decrypt(cryptState_t* cs, const unsigned char* source, unsigne
 		}
 	}
 
-	CryptState_ocb_decrypt(cs, source + 4, dst, plain_length, cs->decrypt_iv, tag);
+	const bool ocbSuccess = CryptState_ocb_decrypt(cs, source + 4, dst, plain_length, cs->decrypt_iv, tag);
 
-	if (memcmp(tag, source + 1, 3) != 0)
+	if (!ocbSuccess || memcmp(tag, source + 1, 3) != 0)
 	{
 		memcpy(cs->decrypt_iv, saveiv, AES_BLOCK_SIZE);
 		return false;
@@ -305,9 +305,10 @@ void CryptState_ocb_encrypt(cryptState_t* cs, const unsigned char* plain, unsign
 	CRYPT_AES_ENCRYPT(tmp, tag, cs);
 }
 
-void CryptState_ocb_decrypt(cryptState_t* cs, const unsigned char* encrypted, unsigned char* plain, unsigned int len, const unsigned char* nonce, unsigned char* tag)
+bool CryptState_ocb_decrypt(cryptState_t* cs, const unsigned char* encrypted, unsigned char* plain, unsigned int len, const unsigned char* nonce, unsigned char* tag)
 {
 	subblock checksum[BLOCKSIZE], delta[BLOCKSIZE], tmp[BLOCKSIZE], pad[BLOCKSIZE];
+	bool success = true;
 	// Initialize
 	CRYPT_AES_ENCRYPT(nonce, delta, cs);
 	ZERO(checksum);
@@ -335,9 +336,18 @@ void CryptState_ocb_decrypt(cryptState_t* cs, const unsigned char* encrypted, un
 	XOR(checksum, checksum, tmp);
 	memcpy(plain, tmp, len);
 
+	// Counter-cryptanalysis against the OCB2 attacks of Inoue et al. (https://eprint.iacr.org/2019/311, section 9),
+	// as done by upstream Mumble: an attack needs the decrypted last block to equal `delta ^ len`.
+	if (memcmp(tmp, delta, AES_BLOCK_SIZE - 1) == 0)
+	{
+		success = false;
+	}
+
 	S3(delta);
 	XOR(tmp, delta, checksum);
 	CRYPT_AES_ENCRYPT(tmp, tag, cs);
+
+	return success;
 }
 
 mbedtls_havege_state hs;
