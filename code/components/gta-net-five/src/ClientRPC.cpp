@@ -428,6 +428,7 @@ public:
 
 					auto executionCtx = std::make_shared<fx::ScriptContextBuffer>();
 					std::vector<std::string> strings;
+					strings.reserve(native->GetArguments().size());
 
 					int i = 0;
 
@@ -476,7 +477,8 @@ public:
 								executionCtx->Push(getObject(buf->Read<uint32_t>()));
 								break;
 							case RpcConfiguration::ArgumentType::ObjDel:
-								static uint32_t toDel = getObject(buf->Read<uint32_t>());
+								static uint32_t toDel;
+								toDel = getObject(buf->Read<uint32_t>());
 								executionCtx->Push(&toDel);
 								break;
 							case RpcConfiguration::ArgumentType::String:

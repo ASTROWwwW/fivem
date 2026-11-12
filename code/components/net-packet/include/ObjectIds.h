@@ -109,7 +109,7 @@ public:
 		{
 			last += idEntry.gap + 1;
 
-			for (uint16_t j = 0; j <= idEntry.size; j++)
+			for (uint32_t j = 0; j <= idEntry.size; j++)
 			{
 				uint16_t objectId = last++;
 				idsToRead.push_back(objectId);
@@ -125,7 +125,7 @@ public:
 		{
 			last += idEntry.gap + 1;
 
-			for (uint16_t j = 0; j <= idEntry.size; j++)
+			for (uint32_t j = 0; j <= idEntry.size; j++)
 			{
 				uint16_t objectId = last++;
 				callback(objectId);

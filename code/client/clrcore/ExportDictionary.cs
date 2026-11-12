@@ -22,8 +22,13 @@ namespace CitizenFX.Core
 			ms_exportRoutines[eventName] = method;
 		}
 
-		internal static void Invoke(string eventName, object[] objArray)
+		internal static void Invoke(string eventName, object[] objArray, string sourceString)
 		{
+			if (sourceString != null && (sourceString.StartsWith("net") || sourceString.StartsWith("internal-net")))
+			{
+				return;
+			}
+
 			if (ms_exportRoutines.TryGetValue(eventName, out Delegate fn))
 			{
 				((Delegate)objArray[0]).DynamicInvoke(new object[] { new object[] { fn } });

@@ -2734,6 +2734,11 @@ static InitFunction initFunction([]()
 				return;
 			}
 
+			if (info.slotId < 0 || info.slotId >= _countof(g_players) || g_playerListCount >= _countof(g_playerList))
+			{
+				return;
+			}
+
 			if (g_players[info.slotId])
 			{
 				console::DPrintf("onesync", "Dropping duplicate player for slotID %d.\n", info.slotId);

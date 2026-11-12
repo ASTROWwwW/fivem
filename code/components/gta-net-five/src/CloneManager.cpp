@@ -953,6 +953,13 @@ bool CloneManagerLocal::HandleCloneCreate(const msgClone& msg)
 		return true;
 	}
 
+	if (static_cast<int>(msg.GetEntityType()) < 0 || static_cast<int>(msg.GetEntityType()) >= static_cast<int>(NetObjEntityType::Max))
+	{
+		ackPacket();
+
+		return true;
+	}
+
 	// create buffer
 	rage::datBitBuffer rlBuffer(const_cast<uint8_t*>(msg.GetCloneData().data()), msg.GetCloneData().size());
 	rlBuffer.m_f1C = 1;
@@ -965,6 +972,14 @@ bool CloneManagerLocal::HandleCloneCreate(const msgClone& msg)
 
 	// get sync tree and read data
 	auto syncTree = rage::netSyncTree::GetForType(msg.GetEntityType());
+
+	if (!syncTree)
+	{
+		ackPacket();
+
+		return true;
+	}
+
 	syncTree->ReadFromBuffer(1, 0, &rlBuffer, nullptr);
 
 	// check if the object already exists *locally*

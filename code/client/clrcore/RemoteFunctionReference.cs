@@ -112,7 +112,7 @@ namespace CitizenFX.Core
 					var err = args.Length > 2 ? args[2] : null;
 
 #if IS_FXSERVER
-					if (m_playerPromises.TryGetValue(sourceString, out var set))
+					if (m_playerPromises.TryGetValue(sourceString, out var set) && set.Contains(repId))
 #endif
 					{
 						if (m_rpcList.TryGetValue(repId, out var tcs))

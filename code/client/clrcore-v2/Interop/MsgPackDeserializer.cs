@@ -16,12 +16,14 @@ namespace CitizenFX.Core
 		private unsafe byte* m_ptr;
 		private readonly unsafe byte* m_end;
 		private readonly string m_netSource;
+		private int m_depth;
 
 		private unsafe MsgPackDeserializer(byte* data, ulong size, string netSource)
 		{
 			m_ptr = data;
 			m_end = data + size;
 			m_netSource = netSource;
+			m_depth = 0;
 		}
 
 		internal static unsafe object Deserialize(byte[] data, string netSource = null)
@@ -95,6 +97,11 @@ namespace CitizenFX.Core
 				length = ReadInt32();
 			else
 				return new object[0];
+
+			if (length < 0 || length > m_end - m_ptr)
+			{
+				throw new ArgumentException("MsgPackDeserializer array length exceeds the remaining data");
+			}
 
 			object[] array = new object[length];
 			for (var i = 0; i < length; ++i)
@@ -181,6 +188,11 @@ namespace CitizenFX.Core
 
 		private IDictionary<string, object> ReadMap(uint length)
 		{
+			if (++m_depth > 64)
+			{
+				throw new InvalidOperationException("MsgPackDeserializer nesting is too deep");
+			}
+
 			var retobject = new ExpandoObject() as IDictionary<string, object>;
 
 			for (var i = 0; i < length; i++)
@@ -190,6 +202,8 @@ namespace CitizenFX.Core
 
 				retobject.Add(key, value);
 			}
+
+			--m_depth;
 
 			return retobject;
 		}
@@ -204,14 +218,26 @@ namespace CitizenFX.Core
 			return retobject;
 		}
 
-		private object[] ReadObjectArray(uint length)
+		private unsafe object[] ReadObjectArray(uint length)
 		{
+			if (++m_depth > 64)
+			{
+				throw new InvalidOperationException("MsgPackDeserializer nesting is too deep");
+			}
+
+			if (length > m_end - m_ptr)
+			{
+				throw new ArgumentException("MsgPackDeserializer array length exceeds the remaining data");
+			}
+
 			object[] retobject = new object[length];
 
 			for (var i = 0; i < length; i++)
 			{
 				retobject[i] = Deserialize();
 			}
+
+			--m_depth;
 
 			return retobject;
 		}

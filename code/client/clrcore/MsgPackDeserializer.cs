@@ -13,6 +13,8 @@ namespace CitizenFX.Core
 	{
 		string NetSource { get; set; }
 
+		int m_depth;
+
 		public static object Deserialize(byte[] data, string netSource = null)
 		{
 			var memoryStream = new MemoryStream(data);
@@ -34,6 +36,11 @@ namespace CitizenFX.Core
 
 		object UnpackMap(BinaryReader reader, int length)
 		{
+			if (++m_depth > 64)
+			{
+				throw new InvalidOperationException("MsgPack nesting is too deep");
+			}
+
 			var retObject = new ExpandoObject() as IDictionary<string, object>;
 
 			for (var i = 0; i < length; i++)
@@ -44,11 +51,18 @@ namespace CitizenFX.Core
 				retObject[key] = value;
 			}
 
+			--m_depth;
+
 			return retObject;
 		}
 
 		object UnpackArray(BinaryReader reader, int length)
 		{
+			if (++m_depth > 64)
+			{
+				throw new InvalidOperationException("MsgPack nesting is too deep");
+			}
+
 			var retObject = new List<object>();
 
 			for (var i = 0; i < length; i++)
@@ -57,6 +71,8 @@ namespace CitizenFX.Core
 
 				retObject.Add(value);
 			}
+
+			--m_depth;
 
 			return retObject;
 		}
@@ -183,6 +199,11 @@ namespace CitizenFX.Core
 			var lenBytes = reader.ReadBytes(4);
 			var len = BitConverter.ToInt32(new[] { lenBytes[3], lenBytes[2], lenBytes[1], lenBytes[0] }, 0);
 
+			if (len < 0 || len > reader.BaseStream.Length - reader.BaseStream.Position)
+			{
+				throw new EndOfStreamException();
+			}
+
 			var bytes = reader.ReadBytes(len);
 
 			return Encoding.UTF8.GetString(bytes, 0, bytes.Length);
@@ -206,6 +227,11 @@ namespace CitizenFX.Core
 		{
 			var lenBytes = reader.ReadBytes(4);
 			var len = BitConverter.ToInt32(new[] { lenBytes[3], lenBytes[2], lenBytes[1], lenBytes[0] }, 0);
+
+			if (len < 0 || len > reader.BaseStream.Length - reader.BaseStream.Position)
+			{
+				throw new EndOfStreamException();
+			}
 
 			return reader.ReadBytes(len);
 		}
@@ -361,6 +387,11 @@ namespace CitizenFX.Core
 			{
 				case 10: // funcref
 				case 11: // localfuncref
+					if (length < 0 || length > reader.BaseStream.Length - reader.BaseStream.Position)
+					{
+						throw new EndOfStreamException();
+					}
+
 					var funcRefData = reader.ReadBytes(length);
 
 					if (extType == 11)

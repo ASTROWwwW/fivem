@@ -446,7 +446,7 @@ namespace CitizenFX.Core
 						});
 					}
 
-					ExportDictionary.Invoke(eventName, objArray);
+					ExportDictionary.Invoke(eventName, objArray, sourceString);
 
 					// invoke a single task tick
 					CitizenTaskScheduler.Instance.Tick();
