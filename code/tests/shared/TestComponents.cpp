@@ -422,3 +422,42 @@ TEST_CASE("read tcp stream")
 		REQUIRE(counter == amount);
 	}
 }
+
+struct SizePrefixedComponent : net::SerializableComponent
+{
+	net::SerializableProperty<uint32_t> header;
+	net::SerializableProperty<net::Span<uint8_t>, net::storage_type::ConstrainedBytesArray<0, 16>> data;
+
+	template<typename T>
+	bool Process(T& stream)
+	{
+		return ProcessPropertiesInOrder<T>(
+			stream,
+			header,
+			data
+		);
+	}
+};
+
+TEST_CASE("Serializable size prefix must fit in the stream")
+{
+	SECTION("reading fails when the stream ends before the size prefix")
+	{
+		// only the 4-byte header is present, the 2-byte size prefix of `data` is missing
+		uint8_t buffer[4] = { 0x2A, 0x00, 0x00, 0x00 };
+		net::ByteReader reader(buffer, sizeof(buffer));
+		SizePrefixedComponent component;
+		REQUIRE(component.Process(reader) == false);
+	}
+
+	SECTION("writing fails when the size prefix does not fit")
+	{
+		SizePrefixedComponent component;
+		component.header = 42;
+
+		// room for the header only: writing must fail instead of silently dropping the size prefix
+		uint8_t buffer[4]{};
+		net::ByteWriter writer(buffer, sizeof(buffer));
+		REQUIRE(component.Process(writer) == false);
+	}
+}

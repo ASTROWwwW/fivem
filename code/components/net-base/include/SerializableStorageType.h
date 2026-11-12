@@ -92,8 +92,14 @@ namespace net::storage_type
 				}
 				else
 				{
-					ElementType size;
-					stream.Field(size);
+					ElementType size{};
+					if (!stream.Field(size))
+					{
+						valid = false;
+
+						return ElementType(0);
+					}
+
 					if constexpr (BigEndian)
 					{
 						size = net::ntoh(size);
@@ -129,7 +135,12 @@ namespace net::storage_type
 						size = net::hton(size);
 					}
 
-					stream.Field(size);
+					if (!stream.Field(size))
+					{
+						valid = false;
+
+						return ElementType(0);
+					}
 				}
 
 				valid = true;
