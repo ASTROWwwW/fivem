@@ -13,6 +13,17 @@ namespace CitizenFX.Core
 	[SecuritySafeCritical]
 	internal struct MsgPackDeserializer
 	{
+		// A hard cap on array/map nesting depth. Deserialize()/ReadObjectArray()/ReadMap() recurse
+		// into each other with no base case other than running out of bytes, and the data comes
+		// straight from the network (any connected player can send a msgServerEvent). A tiny
+		// payload made of a few hundred thousand nested single-element arrays recurses deep enough
+		// to exhaust the thread's stack before the buffer runs out, which is a crash risk that a
+		// normal try/catch around the call does not reliably cover (a stack overflow is not a
+		// normal, safely-catchable .NET exception). 64 is far more than any legitimate event/export
+		// argument ever nests.
+		private const int MaxNestingDepth = 64;
+		private int m_depth;
+
 		private unsafe byte* m_ptr;
 		private readonly unsafe byte* m_end;
 		private readonly string m_netSource;
@@ -22,6 +33,7 @@ namespace CitizenFX.Core
 			m_ptr = data;
 			m_end = data + size;
 			m_netSource = netSource;
+			m_depth = 0;
 		}
 
 		internal static unsafe object Deserialize(byte[] data, string netSource = null)
@@ -107,6 +119,23 @@ namespace CitizenFX.Core
 
 		private object Deserialize()
 		{
+			if (++m_depth > MaxNestingDepth)
+			{
+				throw new InvalidOperationException($"MsgPack nesting depth exceeded {MaxNestingDepth}");
+			}
+
+			try
+			{
+				return DeserializeInner();
+			}
+			finally
+			{
+				m_depth--;
+			}
+		}
+
+		private object DeserializeInner()
+		{
 			var type = ReadByte();
 
 			if (type < 0xC0)
@@ -185,7 +214,14 @@ namespace CitizenFX.Core
 
 			for (var i = 0; i < length; i++)
 			{
-				var key = Deserialize().ToString();
+				var keyObject = Deserialize();
+
+				if (keyObject == null)
+				{
+					throw new InvalidOperationException("MsgPack map key cannot be nil");
+				}
+
+				var key = keyObject.ToString();
 				var value = Deserialize();
 
 				retobject.Add(key, value);
