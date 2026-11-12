@@ -384,8 +384,15 @@ struct NodeWrapper : public NodeBase
 				data.resize(leftoverByteLength);
 			}
 
+			// the client-declared length must be backed by actual data: otherwise the server would keep (and relay
+			// to every other player) up to 8191 bits per node that were never sent
+			if (!state.buffer.ReadBits(data.data(), std::min(int(data.size() * 8), int(leftoverLength))))
+			{
+				this->length = 0;
+				return true;
+			}
+
 			this->length = leftoverLength;
-			state.buffer.ReadBits(data.data(), std::min(int(data.size() * 8), int(leftoverLength)));
 
 			// hac
 			timestamp = state.timestamp;
