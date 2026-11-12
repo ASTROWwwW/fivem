@@ -1035,6 +1035,11 @@ static InitFunction initFunction([] ()
 		}
 		else if (!_wcsicmp(type, L"changeName"))
 		{
+			if (!nui::HasMainUI())
+			{
+				return;
+			}
+
 			std::string newusername = ToNarrow(arg);
 			if (!newusername.empty()) {
 				if (newusername.c_str() != netLibrary->GetPlayerName()) {
@@ -1053,11 +1058,21 @@ static InitFunction initFunction([] ()
 		}
 		else if (!_wcsicmp(type, L"loadSettings"))
 		{
+			if (!nui::HasMainUI())
+			{
+				return;
+			}
+
 			loadSettings();
 			trace("Settings loaded!\n");
 		}
 		else if (!_wcsicmp(type, L"saveSettings"))
 		{
+			if (!nui::HasMainUI())
+			{
+				return;
+			}
+
 			saveSettings(arg);
 			trace("Settings saved!\n");
 		}
@@ -1114,6 +1129,11 @@ static InitFunction initFunction([] ()
 		}
 		else if (!_wcsicmp(type, L"setDiscourseIdentity"))
 		{
+			if (!nui::HasMainUI())
+			{
+				return;
+			}
+
 			try
 			{
 				auto json = nlohmann::json::parse(ToNarrow(arg));
@@ -1188,6 +1208,11 @@ static InitFunction initFunction([] ()
 		}
 		else if (!_wcsicmp(type, L"setLastServers"))
 		{
+			if (!nui::HasMainUI())
+			{
+				return;
+			}
+
 			try
 			{
 				auto json = nlohmann::json::parse(ToNarrow(arg));
