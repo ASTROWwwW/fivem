@@ -113,9 +113,11 @@ namespace CitizenFX.Core
                 }
                 catch (Exception e)
                 {
-                    Debug.WriteLine("Error invoking callback for event {0}: {1}", m_eventName, e.ToString());
-
-                    m_callbacks.Remove(callback);
+                    // A malformed remote event must not unregister a persistent handler.
+                    var cause = e is TargetInvocationException invocationException && invocationException.InnerException != null
+                        ? invocationException.InnerException
+                        : e;
+                    Debug.WriteLine("Error invoking callback for event {0}: {1}", m_eventName, cause.ToString());
                 }
             }
         }
