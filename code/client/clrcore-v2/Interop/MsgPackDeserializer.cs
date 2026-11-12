@@ -13,6 +13,9 @@ namespace CitizenFX.Core
 	[SecuritySafeCritical]
 	internal struct MsgPackDeserializer
 	{
+		private const int MaxNestingDepth = 256;
+		private int m_nestingDepth;
+
 		private unsafe byte* m_ptr;
 		private readonly unsafe byte* m_end;
 		private readonly string m_netSource;
@@ -22,6 +25,7 @@ namespace CitizenFX.Core
 			m_ptr = data;
 			m_end = data + size;
 			m_netSource = netSource;
+			m_nestingDepth = 0;
 		}
 
 		internal static unsafe object Deserialize(byte[] data, string netSource = null)
@@ -107,6 +111,14 @@ namespace CitizenFX.Core
 
 		private object Deserialize()
 		{
+			if (m_nestingDepth >= MaxNestingDepth)
+			{
+				throw new InvalidOperationException($"MsgPack nesting exceeds maximum depth of {MaxNestingDepth}.");
+			}
+
+			m_nestingDepth++;
+			try
+			{
 			var type = ReadByte();
 
 			if (type < 0xC0)
@@ -177,6 +189,11 @@ namespace CitizenFX.Core
 			}
 
 			throw new InvalidOperationException($"Tried to decode invalid MsgPack type {type}");
+			}
+			finally
+			{
+				m_nestingDepth--;
+			}
 		}
 
 		private IDictionary<string, object> ReadMap(uint length)
